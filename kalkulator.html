@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="http://necolas.github.io/normalize.css/4.1.1/normalize.css"></head>
+
+    <style>
+        button {
+            min-width: 50px;
+            height: 50px;
+            margin: 5px;
+        }
+
+        button.twice {
+            min-width: 115px;
+        }
+
+        button.full {
+            width: 245px;
+        }
+
+        .box-result {
+            border-bottom: 1px solid #000;
+            padding: 10px;
+            font-size: 24px;
+            line-height: 30px;
+            min-height: 30px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="result" class="box-result">
+
+</div>
+
+<button class="digit">1</button>
+<button class="digit">2</button>
+<button class="digit">3</button>
+<button id="add">+</button><br />
+<button class="digit">4</button>
+<button class="digit">5</button>
+<button class="digit">6</button>
+<button id="subtract">-</button><br />
+<button class="digit">7</button>
+<button class="digit">8</button>
+<button class="digit">9</button>
+<button id="multiply">*</button><br />
+<button class="digit">0</button>
+<button class="twice" id="equals">=</button>
+<button id="divide">/</button><br />
+<button class="full" id="clear">wyczyść</button>
+
+<script src="calculator.js"></script>
+<script>
+    (function () {
+        var result_box = document.getElementById('result'),
+            digits_list = document.querySelectorAll('.digit'),
+            current_number = '',
+            is_first_action = true,
+            last_operation = null,
+            calc = new window.Calculator();
+
+        // przypięcie zdarzeń kliknięć na wszystkich elementach z cyframi
+        for (var i = 0; i < digits_list.length; i++) {
+            digits_list[i].addEventListener('click', function () {
+                doInsertDigits(this.innerText);
+            });
+        }
+
+        var doInsertDigits = function (digit) {
+            if (last_operation !== 'equals') {
+                current_number += digit;
+
+                result_box.innerHTML += digit;
+            }
+        };
+
+        var doOperation = function (type, sign) {
+            sign = '&nbsp;' + sign + '&nbsp';
+
+            if (is_first_action) {
+                calc.add(current_number);
+                is_first_action = false;
+            }
+
+            if (last_operation !== null && last_operation !== 'equals') {
+                calc.operate(last_operation, current_number);
+            }
+
+            if (type === 'equals') {
+                current_number = '';
+                result_box.innerHTML += ' = <strong>' + calc.getResult() + '</strong> ';
+                last_operation = type;
+            } else {
+                current_number = '';
+                last_operation = type;
+                result_box.innerHTML += sign;
+            }
+        };
+
+
+        var doClear = function () {
+            current_number = '';
+            last_operation = null;
+            is_first_action = true;
+            result_box.innerHTML = '';
+            calc.clear();
+        };
+
+        // przypięcie zdarzenia kliknięcia na dodawanie
+        document.getElementById('add').addEventListener('click', function () {
+            doOperation('add', '+');
+        });
+
+        // przypięcie zdarzenia kliknięcia na odejmowanie
+        document.getElementById('subtract').addEventListener('click', function () {
+            doOperation('substract', '-');
+        });
+
+        // przypięcie zdarzenia kliknięcia na mnożenie
+        document.getElementById('multiply').addEventListener('click', function () {
+            doOperation('multiply', '*');
+        });
+
+        // przypięcie zdarzenia kliknięcia na dzielenie
+        document.getElementById('divide').addEventListener('click', function () {
+            doOperation('divide', '/');
+        });
+
+        // przypięcie zdarzenia kliknięcia na pokazanie wyniku (równa się)
+        document.getElementById('equals').addEventListener('click', function () {
+            doOperation('equals');
+        });
+
+        // przypięcie zdarzenia na wyczyszczenie kalkulatora
+        document.getElementById('clear').addEventListener('click', doClear);
+
+        // obsługa klawiatury
+        document.addEventListener('keydown', function (event) {
+            console.log(event.keyCode);
+            var map_events = {
+                '+': 'add',
+                '-': 'substract',
+                '*': 'multiply',
+                '/': 'divide',
+                '=': 'equals'
+            };
+
+            if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(event.key) !== -1) {
+                doInsertDigits(event.key);
+            }
+
+            if (['+', '-', '*', '/', '='].indexOf(event.key) !== -1) {
+                doOperation(map_events[event.key], event.key);
+            }
+
+            if (event.keyCode === 13) {
+                doOperation('equals', '=');
+            }
+
+            if (event.keyCode === 27) {
+                doClear();
+            }
+        });
+
+    }());
+</script>
+</body>
+</html>
